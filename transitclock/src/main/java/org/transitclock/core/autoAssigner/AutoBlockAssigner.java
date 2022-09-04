@@ -817,7 +817,8 @@ public class AutoBlockAssigner {
 			logger.info("Found multiple matches ({}) for vehicleId={}. "
 					+ "Therefore could not auto assign vehicle. {}", 
 					matches.size(), vehicleId, matches);
-			return null;
+			logger.info("special case for frequenced gtfs");
+			//return null;
 		}
 		
 		// Found a single match so return it
