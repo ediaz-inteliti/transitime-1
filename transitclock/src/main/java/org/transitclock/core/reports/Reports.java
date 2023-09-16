@@ -614,23 +614,25 @@ private static final int MAX_NUM_DAYS = 7;
 	}
 	
 	public static boolean hasLastAvlJsonInHours(String agencyId, String vehicleId, int hours) {
+		Session session = HibernateUtils.getSession();
 		WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
-		String sql = "";
+		int result = 0;
+		
 		if(agency.getDbType().equals("postgresql"))
 		{
 			//sql query should be better
-			sql =
+			SQLQuery query = session.createSQLQuery(
 							"select a.vehicleId as \"vehicleId\", vC.name as \"name\", a.maxTime as \"maxTime\", lat, lon from ( "
 							+ "SELECT vehicleId, max(time) AS maxTime " 
 							+ "FROM avlreports WHERE time > now() + '-" + hours + " hours' AND vehicleId = '" + vehicleId + "' " 
 							+ "GROUP BY vehicleId) a "
 							+ "JOIN AvlReports b ON a.vehicleId=b.vehicleId AND a.maxTime = b.time "
-							+ "JOIN VehicleConfigs vC ON a.vehicleId=vC.id";
+							+ "JOIN VehicleConfigs vC ON a.vehicleId=vC.id");
+			List<Object[]> rows = query.list();
+			result = rows.size();
 		}
 
-		String json=null;				
-		json = GenericJsonQuery.getJsonString(agencyId, sql);				
-		return json.length() > 50 ? true : false;
+		return result > 0 ? true : false;
 	}
 		
 }
