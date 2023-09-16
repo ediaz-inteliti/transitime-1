@@ -1,12 +1,15 @@
 package org.transitclock.core.reports;
 
 import java.text.ParseException;
+import java.util.List;
 
+import org.transitclock.db.hibernate.HibernateUtils;
 import org.transitclock.db.webstructs.WebAgency;
 import org.transitclock.utils.Time;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.transitclock.core.reports.SqlUtils;
 
 public class Reports {
 	
