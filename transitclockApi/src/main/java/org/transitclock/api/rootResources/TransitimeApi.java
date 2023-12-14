@@ -494,12 +494,15 @@ public class TransitimeApi {
 				vehicles = inter.get(vehicleIds);
 			} else {
 				vehicles_temp = inter.get();
-
+				vehicles = new ArrayList<>();
+				// Get Ids of vehicle no later than 72 hours
 				List <String> vehiclesIds = Reports.getLastVehicleIdsInHours(stdParameters.getAgencyId(), 72);
 
-				vehicles = vehicles_temp.stream()
-						.filter(temp -> vehiclesIds.contains(temp.getId())).collect(Collectors.toList());
-
+				for (IpcVehicle temp : vehicles_temp) {
+					if (vehiclesIds.contains(temp.getId())) {
+						vehicles.add(temp);
+					}
+				}
 				vehicles_temp.clear();
 			}
 
@@ -515,7 +518,8 @@ public class TransitimeApi {
         		 for(IpcVehicleConfig iVC : vehicleConfigs) {
         			 if(iVC.getId().equals(ipcVehicle.getId())) {
         				 ipcVehicle.setVehicleName(iVC.getName());
-         				 System.out.println(ipcVehicle.getVehicleName() + " " + iVC.getName());
+         				 System.out.println(" Name:  " +  ipcVehicle.getVehicleName() + " - " + iVC.getName() + "   Id: " +
+								 ipcVehicle.getId()+ " - " + iVC.getId());
         				 break;
         			 }
         		 }        		 
