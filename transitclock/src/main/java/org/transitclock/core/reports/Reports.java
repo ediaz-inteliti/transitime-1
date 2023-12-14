@@ -1,7 +1,6 @@
 package org.transitclock.core.reports;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.transitclock.db.hibernate.HibernateUtils;
@@ -612,27 +611,31 @@ private static final int MAX_NUM_DAYS = 7;
 		}
 
 		
-		String json = null;
+		String json=null;				
 		json = GenericJsonQuery.getJsonString(agencyId, sql);				
 		return json;
 	}
 	
-	public static List <String> getLastVehicleIdsInHours(String agencyId , int hours) {
+	public static boolean hasLastAvlJsonInHours(String agencyId, String vehicleId, int hours) {
 		Session session = HibernateUtils.getSession();
 		WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
-		List <String> vehicleIds = new ArrayList<>();
-
+		int result = 0;
+		
 		if(agency.getDbType().equals("postgresql"))
 		{
+			//sql query should be better
 			SQLQuery query = session.createSQLQuery(
-							"select vehicleId as \"vehicleId\" from ("
-							+ "SELECT DISTINCT vehicleId, max(time) AS maxTime "
-							+ "FROM avlreports WHERE time > now() + '-" + hours + " hours' "
-							+ "GROUP BY vehicleId)");
-
-			vehicleIds = query.list();
+							"select a.vehicleId as \"vehicleId\", vC.name as \"name\", a.maxTime as \"maxTime\", lat, lon from ( "
+							+ "SELECT vehicleId, max(time) AS maxTime " 
+							+ "FROM avlreports WHERE time > now() + '-" + hours + " hours' AND vehicleId = '" + vehicleId + "' " 
+							+ "GROUP BY vehicleId) a "
+							+ "JOIN AvlReports b ON a.vehicleId=b.vehicleId AND a.maxTime = b.time "
+							+ "JOIN VehicleConfigs vC ON a.vehicleId=vC.id");
+			List<Object[]> rows = query.list();
+			result = rows.size();
 		}
-		return vehicleIds;
+
+		return result > 0 ? true : false;
 	}
 		
 }

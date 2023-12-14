@@ -24,13 +24,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.hibernate.Session;
 import org.transitclock.db.hibernate.HibernateUtils;
 import javax.ws.rs.BeanParam;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -61,7 +62,9 @@ import org.transitclock.api.data.ApiServerStatus;
 import org.transitclock.api.data.ApiTrip;
 import org.transitclock.api.data.ApiTripPatterns;
 import org.transitclock.api.data.ApiTripWithTravelTimes;
+import org.transitclock.api.data.ApiVehicle;
 import org.transitclock.api.data.ApiVehicleConfigs;
+import org.transitclock.api.data.ApiVehicleDetails;
 import org.transitclock.api.data.ApiVehicleToBlockConfigs;
 import org.transitclock.api.data.ApiVehicles;
 import org.transitclock.api.data.ApiVehiclesDetails;
@@ -73,6 +76,8 @@ import org.transitclock.core.reports.Reports;
 import org.transitclock.db.structs.Agency;
 import org.transitclock.db.structs.ExportTable;
 import org.transitclock.db.structs.Location;
+import org.transitclock.db.structs.VehicleConfig;
+import org.transitclock.db.structs.VehicleToBlockConfig;
 import org.transitclock.ipc.data.IpcActiveBlock;
 import org.transitclock.ipc.data.IpcBlock;
 import org.transitclock.ipc.data.IpcCalendar;
@@ -86,6 +91,7 @@ import org.transitclock.ipc.data.IpcServerStatus;
 import org.transitclock.ipc.data.IpcTrip;
 import org.transitclock.ipc.data.IpcTripPattern;
 import org.transitclock.ipc.data.IpcVehicle;
+import org.transitclock.ipc.data.IpcVehicleComplete;
 import org.transitclock.ipc.data.IpcVehicleConfig;
 import org.transitclock.ipc.data.IpcVehicleToBlockConfig;
 import org.transitclock.ipc.interfaces.ConfigInterface;
@@ -98,6 +104,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.annotations.servers.ServerVariable;
+import io.swagger.v3.oas.annotations.servers.Servers;
 
 //import io.swagger.annotations.Api;
 //import io.swagger.annotations.ApiOperation;
@@ -494,14 +502,11 @@ public class TransitimeApi {
 				vehicles = inter.get(vehicleIds);
 			} else {
 				vehicles_temp = inter.get();
-				vehicles = new ArrayList<>();
-				// Get Ids of vehicle no later than 72 hours
-				List <String> vehiclesIds = Reports.getLastVehicleIdsInHours(stdParameters.getAgencyId(), 72);
-
-				for (IpcVehicle temp : vehicles_temp) {
-					if (vehiclesIds.contains(temp.getId())) {
-						vehicles.add(temp);
-					}
+				vehicles = inter.get();
+				vehicles.clear();
+				for(IpcVehicle ipcVehicle : vehicles_temp) {
+					if(Reports.hasLastAvlJsonInHours(stdParameters.getAgencyId(), ipcVehicle.getId(), 72))
+						vehicles.add(ipcVehicle);
 				}
 				vehicles_temp.clear();
 			}
@@ -518,8 +523,7 @@ public class TransitimeApi {
         		 for(IpcVehicleConfig iVC : vehicleConfigs) {
         			 if(iVC.getId().equals(ipcVehicle.getId())) {
         				 ipcVehicle.setVehicleName(iVC.getName());
-         				 System.out.println(" Name:  " +  ipcVehicle.getVehicleName() + " - " + iVC.getName() + "   Id: " +
-								 ipcVehicle.getId()+ " - " + iVC.getId());
+         				 System.out.println(ipcVehicle.getVehicleName() + " " + iVC.getName());
         				 break;
         			 }
         		 }        		 
@@ -953,7 +957,7 @@ public class TransitimeApi {
 	 *            the trip pattern are marked as being for the UI and can be
 	 *            highlighted. Useful for when want to emphasize in the UI only
 	 *            the stops that are of interest to the user.
-	 * @param directionId
+	 * @param direction
 	 *            optional. If set then only the shape for specified direction
 	 *            is marked as being for the UI. Needed for situations where a
 	 *            single stop is used for both directions of a route and want to
@@ -1030,7 +1034,7 @@ public class TransitimeApi {
 	 * a stop from a list.
 	 * 
 	 * @param stdParameters
-	 * @param routesIdOrShortNames
+	 * @param routeShortName
 	 * @return
 	 * @throws WebApplicationException
 	 */
