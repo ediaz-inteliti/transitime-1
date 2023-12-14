@@ -625,10 +625,10 @@ private static final int MAX_NUM_DAYS = 7;
 		if(agency.getDbType().equals("postgresql"))
 		{
 			SQLQuery query = session.createSQLQuery(
-							"select vehicleId as \"vehicleId\" from ("
-							+ "SELECT DISTINCT vehicleId, max(time) AS maxTime "
-							+ "FROM avlreports WHERE time > now() + '-" + hours + " hours' "
-							+ "GROUP BY vehicleId)");
+							"select vehicleId as \"vehicleId\"  from " +
+									"(SELECT DISTINCT vehicleId, max(time) AS maxTime " +
+					                "FROM avlreports WHERE time > now() + '-72 hours' " +
+									"GROUP BY vehicleId) as vId");
 
 			vehicleIds = query.list();
 		}
