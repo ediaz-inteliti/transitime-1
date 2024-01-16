@@ -518,8 +518,6 @@ public class TransitimeApi {
         		 for(IpcVehicleConfig iVC : vehicleConfigs) {
         			 if(iVC.getId().equals(ipcVehicle.getId())) {
         				 ipcVehicle.setVehicleName(iVC.getName());
-         				 System.out.println(" Name:  " +  ipcVehicle.getVehicleName() + " - " + iVC.getName() + "   Id: " +
-								 ipcVehicle.getId()+ " - " + iVC.getId());
         				 break;
         			 }
         		 }        		 
@@ -535,8 +533,8 @@ public class TransitimeApi {
 			// Convert IpcVehiclesDetails to ApiVehiclesDetails
 			ApiVehiclesDetails apiVehiclesDetails = new ApiVehiclesDetails(vehicles, stdParameters.getAgencyId(),
 					uiTypesForVehicles,onlyAssigned);
-			
-			
+
+			System.out.println("VehicleDiteils dla " + vehicles.size() + " : pojazdów ");
 
 			// return ApiVehiclesDetails response
 			Response result = null;
