@@ -523,7 +523,6 @@ public class TransitimeApi {
         		 for(IpcVehicleConfig iVC : vehicleConfigs) {
         			 if(iVC.getId().equals(ipcVehicle.getId())) {
         				 ipcVehicle.setVehicleName(iVC.getName());
-         				 System.out.println(ipcVehicle.getVehicleName() + " " + iVC.getName());
         				 break;
         			 }
         		 }        		 
