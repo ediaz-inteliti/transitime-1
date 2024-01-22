@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of Transitime.org
  * 
  * Transitime.org is free software: you can redistribute it and/or modify
@@ -32,7 +32,6 @@ import org.transitclock.ipc.data.IpcKalmanErrorCacheKey;
  * Defines the RMI interface used for obtaining cache runtime information. 
  * 
  * @author Sean Og Crudden
- *
  */
 public interface CacheQueryInterface extends Remote {
 		
@@ -119,4 +118,23 @@ public interface CacheQueryInterface extends Remote {
 	 */	
 	public  Double getKalmanErrorValue(String tripId, Integer stopPathIndex) throws RemoteException;
 
+    /**
+     * Return the removed id of vehicle if it does exist.
+     *
+     * @param vehicleId
+     * @return String with removed vehicle id
+     * @throws RemoteException
+     */
+    String removeVehicleFromCacheByVehicleId(String vehicleId)
+            throws RemoteException;
+
+    /**
+     * Return message of success clear cache of vehicles.
+     *
+     * @param vehicleId
+     * @return String with removed vehicle id
+     * @throws RemoteException
+     */
+    String removeAllVehiclesFromCache()
+            throws RemoteException;
 }

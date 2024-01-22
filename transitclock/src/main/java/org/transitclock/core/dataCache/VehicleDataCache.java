@@ -533,4 +533,13 @@ public class VehicleDataCache {
 		logger.debug("Removing from VehicleDataCache vehiclesMap vehicleId={}", vehicleId);
 		vehiclesMap.remove(vehicleId);
 	}
+
+	/**
+	 * Removes all vehicles from the vehiclesMap
+	 *
+	 */
+	public void removeVehicles() {
+		logger.debug("Removing all vehicles from VehicleDataCache vehiclesMap");
+		vehiclesMap.clear();
+	}
 }

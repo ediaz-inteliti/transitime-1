@@ -14,24 +14,10 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.transitclock.core.dataCache.ErrorCacheFactory;
-import org.transitclock.core.dataCache.HistoricalAverage;
-import org.transitclock.core.dataCache.HoldingTimeCache;
-import org.transitclock.core.dataCache.HoldingTimeCacheKey;
-import org.transitclock.core.dataCache.IpcArrivalDepartureComparator;
-import org.transitclock.core.dataCache.KalmanErrorCacheKey;
-import org.transitclock.core.dataCache.StopArrivalDepartureCacheFactory;
-import org.transitclock.core.dataCache.StopArrivalDepartureCacheKey;
-import org.transitclock.core.dataCache.TripKey;
+import org.transitclock.core.dataCache.*;
 import org.transitclock.core.dataCache.frequency.FrequencyBasedHistoricalAverageCache;
 import org.transitclock.core.dataCache.scheduled.ScheduleBasedHistoricalAverageCache;
-import org.transitclock.core.dataCache.StopPathCacheKey;
-import org.transitclock.core.dataCache.TripDataHistoryCacheFactory;
-import org.transitclock.ipc.data.IpcArrivalDeparture;
-import org.transitclock.ipc.data.IpcHistoricalAverage;
-import org.transitclock.ipc.data.IpcHistoricalAverageCacheKey;
-import org.transitclock.ipc.data.IpcHoldingTimeCacheKey;
-import org.transitclock.ipc.data.IpcKalmanErrorCacheKey;
+import org.transitclock.ipc.data.*;
 import org.transitclock.ipc.interfaces.CacheQueryInterface;
 import org.transitclock.ipc.rmi.AbstractServer;
 
@@ -189,6 +175,7 @@ public class CacheQueryServer extends AbstractServer implements CacheQueryInterf
 		return result;
 	}
 
+
 	@Override
 	public List<IpcKalmanErrorCacheKey> getKalmanErrorCacheKeys() throws RemoteException {
 		List<KalmanErrorCacheKey> keys = ErrorCacheFactory.getInstance().getKeys();
@@ -218,5 +205,28 @@ public class CacheQueryServer extends AbstractServer implements CacheQueryInterf
 		// TODO Auto-generated method stub
 		FrequencyBasedHistoricalAverageCache.getInstance();
 		return null;
+	}
+
+	@Override
+	public String removeVehicleFromCacheByVehicleId(String vehicleId) throws RemoteException {
+
+		IpcVehicleComplete foundOrNull = VehicleDataCache.getInstance()
+				.getVehicle(vehicleId);
+		if (foundOrNull != null && foundOrNull.getAvl().getVehicleId().equals(vehicleId))
+		{
+			VehicleDataCache.getInstance().removeVehicle(vehicleId);
+			return vehicleId;
+		}
+		return "Unsuccess";
+	}
+
+	@Override
+	public String removeAllVehiclesFromCache() throws RemoteException {
+		VehicleDataCache.getInstance().removeVehicles();
+		boolean isVehicleCacheClear = VehicleDataCache
+				.getInstance()
+				.getVehicles()
+				.isEmpty();
+		return "Cache clear : " + isVehicleCacheClear;
 	}
 }

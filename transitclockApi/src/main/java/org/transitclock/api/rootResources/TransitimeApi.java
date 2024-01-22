@@ -1428,16 +1428,13 @@ public class TransitimeApi {
           Collection<IpcActiveBlock> activeBlocks = vehiclesInterface
                   .getActiveBlocksAndVehiclesByRouteName(routeName,
                           allowableBeforeTimeSecs);
-          VehiclesInterface inter = stdParameters.getVehiclesInterface();
-			
-          
+
           for(IpcActiveBlock ipcActiveBlocks : activeBlocks) {
         	 for(IpcVehicle ipcVehicle : ipcActiveBlocks.getVehicles()) {
         		 for(IpcVehicleConfig iVC : vehiclesInterface.getVehicleConfigs()) {
         			 
         			 if(iVC.getId().equals(ipcVehicle.getId())) {
         				 ipcVehicle.setVehicleName(iVC.getName());
-        				 
         				 break;
         			 }
         		 }        		 

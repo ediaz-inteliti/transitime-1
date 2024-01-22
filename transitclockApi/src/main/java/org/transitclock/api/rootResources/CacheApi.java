@@ -23,23 +23,11 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.transitclock.api.data.ApiArrivalDepartures;
-import org.transitclock.api.data.ApiCacheDetails;
-import org.transitclock.api.data.ApiHistoricalAverage;
-import org.transitclock.api.data.ApiHistoricalAverageCacheKeys;
-import org.transitclock.api.data.ApiHoldingTime;
-import org.transitclock.api.data.ApiHoldingTimeCacheKeys;
-import org.transitclock.api.data.ApiKalmanErrorCacheKeys;
-import org.transitclock.api.data.ApiPredictionsForStopPath;
+import org.transitclock.api.data.*;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
 import org.transitclock.ipc.data.IpcArrivalDeparture;
@@ -392,5 +380,37 @@ public class CacheApi {
 			throw WebUtils.badRequestException(e.getMessage());
 		}
 	}
-	
+
+	@Path("/command/removeAllFromCacheOrByVehicleId")
+	@POST
+	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Operation(summary = "Remove a vehicle from cache by id if it does exist or clean all vehicles.",
+			description = "Return the removed id of vehicle if it does exist or \"Cache clear\" if is cleaned all cache. +" +
+					"Throw exception if doesn't found id or is passed wrong argument.",
+			tags = {"cache"})
+	public Response deleteVehicleFromCache(@BeanParam StandardParameters stdParameters,
+										   @Parameter(description = "Id of the vehicle or \"all\"", required = true)
+										   @QueryParam(value = "allOrVehicleId") String allOrVehicleId) throws WebApplicationException {
+		try {
+			CacheQueryInterface cachequeryInterface = stdParameters.getCacheQueryInterface();
+
+			if (allOrVehicleId != null && !allOrVehicleId.equalsIgnoreCase("all")) {
+				String result = cachequeryInterface.removeVehicleFromCacheByVehicleId(allOrVehicleId);
+				if (result.equals(allOrVehicleId))
+					return stdParameters.createResponse(new ApiCommandAck(true, "Delete success. " + result));
+				else {
+					return stdParameters.createResponse(new ApiCommandAck(false,
+							"This id: " + allOrVehicleId + " does not exist in the cache"));
+				}
+			} else if (allOrVehicleId.equalsIgnoreCase("all")) {
+				String result = cachequeryInterface.removeAllVehiclesFromCache();
+				return stdParameters.createResponse(result);
+			}
+			return stdParameters.createResponse(new ApiCommandAck(false, "Something get wrong. Please, try again!"));
+
+		} catch (Exception e) {
+			// If problem getting result then return a Bad Request
+			throw WebUtils.badRequestException(e.getMessage());
+		}
+	}
 }
