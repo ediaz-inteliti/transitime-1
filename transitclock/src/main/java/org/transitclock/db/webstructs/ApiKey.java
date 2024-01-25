@@ -125,9 +125,9 @@ public class ApiKey implements Serializable {
 		    Transaction transaction = session.beginTransaction();
 		    session.save(this);
 		    transaction.commit();
-		} catch (Exception exception) {
-			System.err.println(exception.getMessage() + exception.getCause());
-		    throw exception;
+		} catch (Exception e) {
+			System.err.println(e.getMessage() + e.getCause());
+		    throw e;
 		} finally {
 			// Make sure that the session always gets closed, even if 
 			// exception occurs
@@ -146,8 +146,8 @@ public class ApiKey implements Serializable {
 		    Transaction transaction = session.beginTransaction();
 		    session.delete(this);
 		    transaction.commit();
-		} catch (Exception e) {
-		    throw e;
+		} catch (Exception exception) {
+		    throw exception;
 		} finally {
 			// Make sure that the session always gets closed, even if 
 			// exception occurs

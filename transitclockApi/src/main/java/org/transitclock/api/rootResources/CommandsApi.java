@@ -21,13 +21,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.rmi.RemoteException;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Date;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -42,36 +39,27 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.hibernate.Session;
-import org.transitclock.db.hibernate.HibernateUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.transitclock.api.data.ApiCommandAck;
-import org.transitclock.api.data.ApiVehicles;
-import org.transitclock.api.rootResources.TransitimeApi.UiMode;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
 import org.transitclock.db.GenericQuery;
 import org.transitclock.db.structs.AvlReport;
 import org.transitclock.db.structs.ExportTable;
 import org.transitclock.db.structs.MeasuredArrivalTime;
-import org.transitclock.db.structs.VehicleToBlockConfig;
 import org.transitclock.db.structs.AvlReport.AssignmentType;
 import org.transitclock.ipc.data.IpcAvl;
 import org.transitclock.ipc.data.IpcTrip;
-import org.transitclock.ipc.data.IpcVehicle;
 import org.transitclock.ipc.interfaces.CommandsInterface;
 import org.transitclock.ipc.interfaces.ConfigInterface;
-import org.transitclock.ipc.interfaces.VehiclesInterface;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.servers.Server;
-import io.swagger.v3.oas.annotations.servers.Servers;
 
 @Path("/key/{key}/agency/{agency}")
 public class CommandsApi {
@@ -498,5 +486,62 @@ public class CommandsApi {
 			throw WebUtils.badRequestException(ex);
 		}
 		return stdParameters.createResponse(new ApiCommandAck(true,"Processed"));
+	}
+
+	@Operation(summary="Create api key", description="Create api key", tags= {"key"})
+	@Path("/command/createApiKey")
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response createApiKey(
+			@BeanParam StandardParameters stdParameters,
+			@Parameter(description="Json of application key. ", required = true) InputStream requestBody) throws WebApplicationException
+	{
+		stdParameters.validate();
+		String response = null;
+
+		try {
+			JSONObject jsonBody = getJsonObject(requestBody);
+			String applicationName = jsonBody.getString("name");
+			String applicationUrl = jsonBody.getString("url");
+			String email = jsonBody.getString("email");
+			String phone = jsonBody.getString("phone");
+			String description = jsonBody.getString("description");
+			CommandsInterface inter = stdParameters.getCommandsInterface();
+
+			response = inter.addAppKey(applicationName, applicationUrl, email, phone, description);
+
+		} catch (Exception ex) {
+			throw WebUtils.badRequestException(ex.getMessage());
+		}
+		if(response != null)
+			return stdParameters.createResponse(new ApiCommandAck(true,"Created key: " + response));
+		else
+			return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again! "));
+	}
+
+	@Operation(summary="Delete api key", description="Deleting outdated application keys", tags= {"key"})
+	@Path("/command/deleteApiKey")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response deleteApiKey(
+			@BeanParam StandardParameters stdParameters,
+			@Parameter(description="insert api key to delete", required = true)
+			@QueryParam(value = "apiKey") String apiKey) throws WebApplicationException
+	{
+		stdParameters.validate();
+		String response = null;
+
+		try {
+			CommandsInterface inter = stdParameters.getCommandsInterface();
+			response = inter.removeAppKey(apiKey);
+
+		} catch (Exception ex) {
+			throw WebUtils.badRequestException(ex.getMessage());
+		}
+		if(response != null)
+			return stdParameters.createResponse(new ApiCommandAck(true,response));
+		else
+		    return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again!"));
 	}
 }
