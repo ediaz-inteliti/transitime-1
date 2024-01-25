@@ -80,4 +80,25 @@ public interface CommandsInterface extends Remote {
 	 * Returns null on success
 	 */
 	public String removeVehicleToBlock(long id) throws RemoteException;
+
+	/**
+	 * Add application key to db.
+	 * Returns key on success or throw exception.
+	 *
+	 * @param applicationName name of user
+	 * @param applicationUrl url of organization
+	 * @param description
+	 * @param email
+	 * @param phone
+	 */
+	public String addAppKey(String applicationName, String applicationUrl,
+							String email, String phone, String description) throws Exception;
+
+	/**
+	 * Add remove vehicle to block.
+	 * Returns applicationName on success.
+	 *
+	 * @param apiKey
+	 */
+	public String removeAppKey(String apiKey) throws Exception;
 }

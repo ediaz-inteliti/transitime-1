@@ -202,9 +202,10 @@ public class ApiKeyManager {
 	 * 
 	 * @param key
 	 */
-	public void deleteKey(String key) {
-		List<ApiKey> apiKeys = getApiKeys();
-		for (ApiKey apiKey : apiKeys) {
+	public String deleteKey(String key) throws HibernateException, IllegalArgumentException {
+
+		List<ApiKey> beforeDeleteApiKeys = getApiKeys();
+		for (ApiKey apiKey : beforeDeleteApiKeys) {
 			if (apiKey.getKey().equals(key)) {
 				// Found the right key. Delete from database
 				apiKey.deleteApiKey(dbName);
@@ -212,14 +213,17 @@ public class ApiKeyManager {
 				// Also delete key from the cache
 				apiKeyCache.remove(key);
 
-				// Found the key so done here
-				return;
+			List<ApiKey> afterDeleteApiKeys = getApiKeys();
+			if (!afterDeleteApiKeys.contains(apiKey))
+				return "Api Key deleted successful for user: "+ apiKey.getApplicationName();
+			else
+				return "Api Key for user: " + apiKey.getApplicationName() + "still in the db. Try again!";
 			}
 		}
-
 		// That key not found in database so report error
-		logger.error("Could not delete key {} because it was not in database",
-				key);
+		logger.error("Could not delete key {} because it was not in database", key);
+
+		    throw new IllegalArgumentException("Could not delete key because it was not in database");
 	}
 
 	/**
