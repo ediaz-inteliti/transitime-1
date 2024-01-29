@@ -534,7 +534,7 @@ public class TransitimeApi {
 			ApiVehiclesDetails apiVehiclesDetails = new ApiVehiclesDetails(vehicles, stdParameters.getAgencyId(),
 					uiTypesForVehicles,onlyAssigned);
 
-			System.out.println("VehicleDiteils dla " + vehicles.size() + " : pojazdów ");
+			System.out.println("VehicleDiteils for " + vehicles.size() + " : vehicles ");
 
 			// return ApiVehiclesDetails response
 			Response result = null;
