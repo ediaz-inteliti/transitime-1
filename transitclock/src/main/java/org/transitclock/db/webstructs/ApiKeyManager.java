@@ -148,11 +148,11 @@ public class ApiKeyManager {
 	 * be secure so simply use hashCode() to generate a key and use hex form of
 	 * it for consistency and compactness.
 	 * 
-	 * @param applicationName
+	 * @param attributes
 	 * @return
 	 */
-	private String generateKey(String applicationName) {
-		String saltedApplicationName = applicationName + KEY_SALT;
+	private String generateKey(String attributes) {
+		String saltedApplicationName = attributes + KEY_SALT;
 		return Integer.toHexString(saltedApplicationName.hashCode());
 	}
 
@@ -184,7 +184,7 @@ public class ApiKeyManager {
 		}
 
 		// Determine what the key should be
-		String key = generateKey(applicationName);
+		String key = generateKey(applicationName + applicationUrl + email);
 
 		// Create the new ApiKey
 		ApiKey newApiKey = new ApiKey(applicationName, key, applicationUrl,
@@ -215,7 +215,7 @@ public class ApiKeyManager {
 
 			List<ApiKey> afterDeleteApiKeys = getApiKeys();
 			if (!afterDeleteApiKeys.contains(apiKey))
-				return "Api Key deleted successful for user: "+ apiKey.getApplicationName();
+				return "Api Key is successfully deleted for user: "+ apiKey.getApplicationName();
 			else
 				return "Api Key for user: " + apiKey.getApplicationName() + "still in the db. Try again!";
 			}

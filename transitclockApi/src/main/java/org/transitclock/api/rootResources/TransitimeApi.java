@@ -2032,9 +2032,7 @@ public class TransitimeApi {
 				throw WebUtils.badRequestException("Email = " + email + " does not exist.");
 
 			// Create and return ApiKey response.
-			JSONObject jsonObject = new JSONObject(foundKey);
-
-			return stdParameters.createResponse(jsonObject.toString());
+			return stdParameters.createResponse(new ApiAppKey(foundKey));
 
 		} catch (Exception exception) {
 			// If problem getting data then return a Bad Request
