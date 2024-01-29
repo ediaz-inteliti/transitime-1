@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.transitclock.db.structs.Agency;
+import org.transitclock.db.webstructs.ApiKey;
 import org.transitclock.ipc.data.IpcBlock;
 import org.transitclock.ipc.data.IpcCalendar;
 import org.transitclock.ipc.data.IpcDirectionsForRoute;
@@ -222,6 +223,24 @@ public interface ConfigInterface extends Remote {
 	 * @throws RemoteException
 	 */
 	public List<String> getBlockIds(String serviceId)
-			throws RemoteException;	
+			throws RemoteException;
+
+	/**
+	 * Returns list of api keys, unsorted or throw exception
+	 *
+	 * @return ArrayList <ApiKey>
+	 * @throws RemoteException
+	 * @throws RuntimeException
+	 */
+	List <ApiKey> getAllAppKeys() throws RemoteException, RuntimeException;
+
+	/**
+	 * Returns ApiKey object for specified single key or throw exception
+	 *
+	 * @return ApiKey
+	 * @throws RemoteException
+	 * @throws RuntimeException
+	 */
+	ApiKey getAppKey(String email) throws RemoteException, RuntimeException;
 
 }

@@ -26,12 +26,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.hibernate.Session;
+import org.json.JSONObject;
+import org.transitclock.api.data.*;
 import org.transitclock.db.hibernate.HibernateUtils;
 import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -39,35 +39,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.transitclock.api.data.ApiActiveBlocks;
-import org.transitclock.api.data.ApiActiveBlocksRoutes;
-import org.transitclock.api.data.ApiAdherenceSummary;
-import org.transitclock.api.data.ApiAgencies;
-import org.transitclock.api.data.ApiAgency;
-import org.transitclock.api.data.ApiBlock;
-import org.transitclock.api.data.ApiBlocks;
-import org.transitclock.api.data.ApiBlocksTerse;
-import org.transitclock.api.data.ApiCalendars;
-import org.transitclock.api.data.ApiCurrentServerDate;
-import org.transitclock.api.data.ApiDirections;
-import org.transitclock.api.data.ApiExportsData;
-import org.transitclock.api.data.ApiIds;
-import org.transitclock.api.data.ApiPredictions;
-import org.transitclock.api.data.ApiRmiServerStatus;
-import org.transitclock.api.data.ApiRoutes;
-import org.transitclock.api.data.ApiRoutesDetails;
-import org.transitclock.api.data.ApiSchedulesHorizStops;
-import org.transitclock.api.data.ApiSchedulesVertStops;
-import org.transitclock.api.data.ApiServerStatus;
-import org.transitclock.api.data.ApiTrip;
-import org.transitclock.api.data.ApiTripPatterns;
-import org.transitclock.api.data.ApiTripWithTravelTimes;
-import org.transitclock.api.data.ApiVehicle;
-import org.transitclock.api.data.ApiVehicleConfigs;
-import org.transitclock.api.data.ApiVehicleDetails;
-import org.transitclock.api.data.ApiVehicleToBlockConfigs;
-import org.transitclock.api.data.ApiVehicles;
-import org.transitclock.api.data.ApiVehiclesDetails;
 import org.transitclock.api.predsByLoc.PredsByLoc;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
@@ -76,8 +47,7 @@ import org.transitclock.core.reports.Reports;
 import org.transitclock.db.structs.Agency;
 import org.transitclock.db.structs.ExportTable;
 import org.transitclock.db.structs.Location;
-import org.transitclock.db.structs.VehicleConfig;
-import org.transitclock.db.structs.VehicleToBlockConfig;
+import org.transitclock.db.webstructs.ApiKey;
 import org.transitclock.ipc.data.IpcActiveBlock;
 import org.transitclock.ipc.data.IpcBlock;
 import org.transitclock.ipc.data.IpcCalendar;
@@ -91,7 +61,6 @@ import org.transitclock.ipc.data.IpcServerStatus;
 import org.transitclock.ipc.data.IpcTrip;
 import org.transitclock.ipc.data.IpcTripPattern;
 import org.transitclock.ipc.data.IpcVehicle;
-import org.transitclock.ipc.data.IpcVehicleComplete;
 import org.transitclock.ipc.data.IpcVehicleConfig;
 import org.transitclock.ipc.data.IpcVehicleToBlockConfig;
 import org.transitclock.ipc.interfaces.ConfigInterface;
@@ -104,8 +73,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.servers.Server;
-import io.swagger.v3.oas.annotations.servers.ServerVariable;
-import io.swagger.v3.oas.annotations.servers.Servers;
 
 //import io.swagger.annotations.Api;
 //import io.swagger.annotations.ApiOperation;
@@ -956,7 +923,7 @@ public class TransitimeApi {
 	 *            the trip pattern are marked as being for the UI and can be
 	 *            highlighted. Useful for when want to emphasize in the UI only
 	 *            the stops that are of interest to the user.
-	 * @param direction
+	 * @param directionId
 	 *            optional. If set then only the shape for specified direction
 	 *            is marked as being for the UI. Needed for situations where a
 	 *            single stop is used for both directions of a route and want to
@@ -1033,7 +1000,7 @@ public class TransitimeApi {
 	 * a stop from a list.
 	 * 
 	 * @param stdParameters
-	 * @param routeShortName
+	 * @param routesIdOrShortNames
 	 * @return
 	 * @throws WebApplicationException
 	 */
@@ -2033,6 +2000,45 @@ public class TransitimeApi {
 			// If problem getting data then return a Bad Request
 			session.close();
 			throw WebUtils.badRequestException(e);
+		}
+	}
+
+	@Path("/command/apiKeyOrKeys")
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON})
+	@Operation(summary="Show api keys.",description="Show api keys for single user or all users ", tags= {"key"})
+	public Response getApiKeyOrAll(
+			@BeanParam StandardParameters stdParameters,
+	        @Parameter(description="insert email to show attributes", required = false)
+			@QueryParam(value = "email") String email) throws WebApplicationException {
+		// Make sure request is valid
+		stdParameters.validate();
+
+		List <ApiKey> allApiKeys;
+		try {
+			ConfigInterface inter = stdParameters.getConfigInterface();
+
+			// Get all api keys from server
+			if (email == null) {
+			allApiKeys = inter.getAllAppKeys();
+			// Create and return ApiKeyList response.
+			return stdParameters.createResponse(new ApiAppKeys(allApiKeys));
+			}
+			// Get certain api key from server by email
+			ApiKey foundKey = inter.getAppKey(email);
+			// If the key doesn't exist then throw exception such that
+			// Bad Request with an appropriate message is returned.
+			if (foundKey == null)
+				throw WebUtils.badRequestException("Email = " + email + " does not exist.");
+
+			// Create and return ApiKey response.
+			JSONObject jsonObject = new JSONObject(foundKey);
+
+			return stdParameters.createResponse(jsonObject.toString());
+
+		} catch (Exception exception) {
+			// If problem getting data then return a Bad Request
+			throw WebUtils.badRequestException(exception.getMessage() + exception.getCause());
 		}
 	}
 	// /**
