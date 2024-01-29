@@ -215,7 +215,7 @@ public class ApiKeyManager {
 
 			List<ApiKey> afterDeleteApiKeys = getApiKeys();
 			if (!afterDeleteApiKeys.contains(apiKey))
-				return "Api Key is successfully deleted for user: "+ apiKey.getApplicationName();
+				return "Api Key successfully deleted for user: "+ apiKey.getApplicationName();
 			else
 				return "Api Key for user: " + apiKey.getApplicationName() + "still in the db. Try again!";
 			}
