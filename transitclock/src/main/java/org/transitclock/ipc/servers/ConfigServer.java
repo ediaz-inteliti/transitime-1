@@ -18,11 +18,7 @@
 package org.transitclock.ipc.servers;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.transitclock.applications.Core;
@@ -34,6 +30,8 @@ import org.transitclock.db.structs.Route;
 import org.transitclock.db.structs.Trip;
 import org.transitclock.db.structs.TripPattern;
 import org.transitclock.db.structs.VehicleConfig;
+import org.transitclock.db.webstructs.ApiKey;
+import org.transitclock.db.webstructs.ApiKeyManager;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.ipc.data.IpcBlock;
 import org.transitclock.ipc.data.IpcCalendar;
@@ -436,4 +434,40 @@ public class ConfigServer extends AbstractServer implements ConfigInterface {
 		return blockIds;
 	}
 
+	@Override
+	public List<ApiKey> getAllAppKeys() throws RemoteException, RuntimeException {
+		try{
+			List <ApiKey> apiKeysList = ApiKeyManager.getInstance().getApiKeys();
+			logger.info("Successfully fetch: {} keys from database", apiKeysList.size());
+		return apiKeysList;
+
+		} catch (Exception exception) {
+			logger.error(exception.getMessage());
+			throw exception;
+		}
+	}
+
+
+	@Override
+	public ApiKey getAppKey(String email) throws RemoteException, RuntimeException {
+
+		try{
+			List <ApiKey> apiKeysList = ApiKeyManager.getInstance().getApiKeys();
+			if (!apiKeysList.isEmpty()) {
+			logger.info("Successfully fetched: {} keys from database", apiKeysList.size());
+			Optional<ApiKey> foundKey = apiKeysList
+					.stream()
+					.filter(key -> key.getEmail().equals(email))
+					.findFirst();
+			return foundKey.orElseThrow(() ->
+					new IllegalArgumentException("Could not find key for: "+email+" because it is not in database."));
+			}
+			logger.error("Could not find key {} because it was not in database", email);
+			throw new IllegalArgumentException("Could not find key for: "+email+" because it is not in database.");
+
+		} catch (Exception exception) {
+			logger.error(exception.getMessage());
+			throw exception;
+		}
+	}
 }
