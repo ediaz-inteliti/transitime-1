@@ -381,7 +381,7 @@ public class CacheApi {
 		}
 	}
 
-	@Path("/command/removeAllFromCacheOrByVehicleId")
+	@Path("/command/clearAllCacheOrRemoveByVehicleId")
 	@POST
 	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Operation(summary = "Remove a vehicle from cache by id if it does exist or clean all vehicles.",
