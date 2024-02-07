@@ -1045,9 +1045,9 @@ public class TransitimeApi {
 			" grouped by direction. Useful for creating a UI where user needs to select" + 
 			" a stop from a list.",tags= {"base data","stop"})
 	public Response getStops(@BeanParam StandardParameters stdParameters,
-			@Parameter(description="if set, retrives only busstops belongind to the route. "
-					+ "It might be routeId or route shrot name.",required=false)
-			@QueryParam(value = "r") String routesIdOrShortNames) throws WebApplicationException {
+			@Parameter(description="It retrives busstops belongind to the route. "
+					+ "It might be routeId or route shrot name.",required=true)
+			@QueryParam(value ="routId") String routesIdOrShortNames) throws WebApplicationException {
 
 		// Make sure request is valid
 		stdParameters.validate();
